@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mon cerveau (un gros bordel)</title>
+<meta name="description" content="Les univers de Ronova : Fybilis Requiem et le DCU, à lire tome par tome et chapitre par chapitre.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Spectral:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@500;700;900&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Barlow+Condensed:wght@500;600&family=Pixelify+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Mise en page : en-tête fixe avec sélecteur d'univers ; pour chaque univers, un sommaire latéral et une colonne de lecture. */
+:root {
+  color-scheme: dark;
+  --bg: #0c0e14; --surface: #151822; --line: #262a38; --ink: #eceef5; --muted: #979cb0;
+  --accent: #9fd3ff; --accent-2: #e05a5a;
+  --display: "Marcellus SC", "Cinzel", Georgia, serif;
+  --body: "Spectral", Georgia, "Times New Roman", serif;
+  --ui: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --dtrack: .04em; --dcase: none;
+}
+/* Personnages : codex de velours violet, enluminures d'or */
+body[data-u="persos"] {
+  --bg: #0d0914; --surface: #181024; --line: #33244a; --ink: #f1eaf8; --muted: #a596b8;
+  --accent: #c9a24f; --accent-2: #b98cf0;
+  --display: "Cinzel", Georgia, serif; --body: "EB Garamond", Garamond, Georgia, serif;
+  --dtrack: .06em;
+}
+/* Mods Minecraft : terre, herbe et émeraude */
+body[data-u="mods"] {
+  --bg: #0a120b; --surface: #132015; --line: #26402a; --ink: #eaf5e6; --muted: #98b394;
+  --accent: #74d66a; --accent-2: #c8f59a;
+  --display: "Pixelify Sans", "Barlow Condensed", system-ui, sans-serif; --body: "Spectral", Georgia, serif;
+}
+/* Fybilis Requiem : nuit glacée, bleu clair, éclats d'argent */
+body[data-u="fybilis"] {
+  --bg: #07111d; --surface: #0e1c2d; --line: #1f3651; --ink: #e8f4ff; --muted: #8eabc8;
+  --accent: #7cc8ff; --accent-2: #bfe7ff;
+  --display: "Marcellus SC", "Cinzel", Georgia, serif; --body: "Spectral", Georgia, serif;
+}
+/* DCU : noir de cendre, rouge impérial, braises */
+body[data-u="dcu"] {
+  --bg: #090505; --surface: #150b0b; --line: #3a1819; --ink: #f3e7e3; --muted: #b09390;
+  --accent: #e5323e; --accent-2: #ff8a6a;
+  --display: "Cinzel", Georgia, serif; --body: "EB Garamond", Garamond, Georgia, serif;
+  --dtrack: .12em; --dcase: uppercase;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 18px; line-height: 1.65; transition: background .5s ease, color .5s ease; }
+#sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 3px; border-radius: 4px; }
+
+header.top {
+  position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 12px max(16px, 3vw); background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
+}
+.brand { white-space: nowrap; font-family: var(--ui); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; font-size: 15px; color: var(--muted); text-decoration: none; margin-right: auto; }
+.brand b { color: var(--ink); font-weight: 600; }
+.switch { display: flex; gap: 6px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
+.switch a { font-family: var(--ui); font-weight: 600; font-size: 15px; letter-spacing: .06em; text-transform: uppercase; text-decoration: none; color: var(--muted); padding: 6px 14px; border-radius: 999px; }
+.switch a[aria-current="true"] { background: var(--accent); color: var(--bg); }
+.toc-btn { display: none; font-family: var(--ui); font-size: 15px; letter-spacing: .06em; text-transform: uppercase; background: none; color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+#progress { position: fixed; top: 0; left: 0; height: 3px; width: 0; background: var(--accent-2); z-index: 30; }
+main { position: relative; z-index: 1; }
+
+/* Accueil */
+.home { max-width: 1100px; margin: 0 auto; padding: 56px max(16px, 3vw) 80px; display: grid; gap: 32px; }
+.home h1 { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 5vw, 56px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.home h1 small { display: block; font-size: .42em; color: var(--muted); letter-spacing: .08em; margin-top: 8px; }
+.home > p { color: var(--muted); max-width: 60ch; margin: 0; }
+.worlds { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.world { position: relative; overflow: hidden; display: grid; gap: 14px; align-content: start; padding: 28px; border-radius: 14px; text-decoration: none; color: var(--w-ink); background: var(--w-bg); border: 1px solid var(--w-line); min-height: 320px; }
+.world.fybilis { --w-bg: radial-gradient(120% 90% at 85% 0%, #1b4a72 0%, #07111d 62%); --w-ink: #e8f4ff; --w-line: #1f3651; --w-acc: #8fd2ff; --w-font: "Marcellus SC", serif; }
+.world.dcu { --w-bg: radial-gradient(110% 90% at 85% 0%, #4a0d12 0%, #090505 62%); --w-ink: #f3e7e3; --w-line: #3a1819; --w-acc: #ff4a55; --w-font: "Cinzel", serif; }
+.world.persos { --w-bg: radial-gradient(110% 90% at 85% 0%, #3d2160 0%, #0d0914 62%); --w-ink: #f1eaf8; --w-line: #33244a; --w-acc: #d9b45e; --w-font: "Cinzel", serif; }
+.world.mods { --w-bg: radial-gradient(110% 90% at 85% 0%, #1f5b25 0%, #0a120b 62%); --w-ink: #eaf5e6; --w-line: #26402a; --w-acc: #8be07f; --w-font: "Pixelify Sans", sans-serif; }
+.world .k { font-family: var(--ui); font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--w-acc); }
+.world h2 { font-family: var(--w-font); font-weight: 500; font-size: 40px; line-height: 1.05; margin: 0; }
+.world.dcu h2 { text-transform: uppercase; letter-spacing: .14em; font-weight: 900; }
+.world p { margin: 0; opacity: .85; }
+.world .go { font-family: var(--ui); letter-spacing: .08em; text-transform: uppercase; font-size: 15px; color: var(--w-acc); margin-top: auto; }
+.world:hover { border-color: var(--w-acc); }
+.world .big { position: absolute; right: -6px; bottom: -40px; font-family: var(--w-font); font-size: 180px; line-height: 1; opacity: .08; pointer-events: none; }
+
+/* Univers */
+.shell { display: grid; grid-template-columns: 300px minmax(0, 1fr); max-width: 1280px; margin: 0 auto; }
+aside.side { position: sticky; top: var(--hh, 61px); align-self: start; height: calc(100vh - var(--hh, 61px)); overflow-y: auto; padding: 24px 16px 40px max(16px, 2vw); border-right: 1px solid var(--line); }
+.search { width: 100%; font: inherit; font-family: var(--ui); font-size: 16px; letter-spacing: .02em; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.search::placeholder { color: var(--muted); }
+.group { margin-top: 22px; }
+.group h3, .cat h3 { font-family: var(--ui); font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; font-weight: 600; }
+.cat { margin-top: 26px; }
+.cat .group { margin-top: 8px; }
+.group ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+.group a { display: block; text-decoration: none; color: var(--muted); font-size: 16px; line-height: 1.35; padding: 6px 10px; border-radius: 6px; border-left: 2px solid transparent; overflow-wrap: anywhere; }
+.group a:hover { color: var(--ink); background: var(--surface); }
+.group a[aria-current="true"] { color: var(--ink); background: var(--surface); border-left-color: var(--accent); }
+.group .part { font-family: var(--ui); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-2); opacity: .75; padding: 10px 10px 2px; }
+.results { margin-top: 18px; display: grid; gap: 8px; }
+.results .none { color: var(--muted); font-size: 16px; }
+.results a { display: grid; gap: 2px; text-decoration: none; padding: 8px 10px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); }
+.results a b { color: var(--ink); font-weight: 600; font-size: 16px; }
+.results a small { font-family: var(--ui); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.results a span { color: var(--muted); font-size: 14px; line-height: 1.4; }
+
+article.read { padding: 40px max(16px, 4vw) 96px; min-width: 0; }
+.inner { max-width: 68ch; margin: 0 auto; }
+.crumb { font-family: var(--ui); font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.crumb a { color: inherit; text-decoration: none; border-bottom: 1px solid currentColor; }
+article h1 { font-family: var(--display); font-weight: 500; font-size: clamp(32px, 4.6vw, 52px); line-height: 1.08; margin: 8px 0 28px; text-wrap: balance; letter-spacing: var(--dtrack); text-transform: var(--dcase); overflow-wrap: anywhere; }
+body[data-u="dcu"] article h1 { font-weight: 700; }
+.content h3 { font-family: var(--display); font-weight: 500; font-size: 26px; line-height: 1.2; margin: 2em 0 .5em; color: var(--accent-2); text-wrap: balance; letter-spacing: calc(var(--dtrack) * .6); }
+body[data-u="dcu"] .content h3 { text-transform: uppercase; font-size: 22px; font-weight: 700; }
+.content h4 { font-family: var(--ui); font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 1.8em 0 .4em; }
+.content > h4:first-child, .content > h3:first-child { margin-top: 0; }
+.content { overflow-wrap: break-word; }
+.content p { margin: 0 0 1em; }
+.content p.blank { height: 1.65em; margin: 0 0 1em; }
+.content strong { font-weight: 600; }
+.content ul, .content ol { padding-left: 1.3em; margin: 0 0 1em; }
+.content li { margin: .25em 0; }
+.content li::marker { color: var(--accent); }
+.content em { color: var(--muted); }
+.content p.fin { font-family: var(--ui); letter-spacing: .14em; text-transform: uppercase; font-size: 14px; color: var(--accent); margin-top: 1.6em; }
+.content p.titlecard { text-align: center; margin: 1.4em 0; }
+.content p.titlecard img { max-width: 100%; height: auto; }
+.tw { overflow-x: auto; margin: 1.2em 0 1.6em; border: 1px solid var(--line); border-radius: 10px; }
+.content table { border-collapse: collapse; width: 100%; font-size: 16px; font-variant-numeric: tabular-nums; }
+.content th, .content td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.content th { font-family: var(--ui); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 13px; color: var(--accent-2); background: var(--surface); }
+.content th strong { font-weight: 600; }
+.content tr:last-child td { border-bottom: 0; }
+mark { background: color-mix(in srgb, var(--accent) 40%, transparent); color: inherit; border-radius: 3px; padding: 0 2px; }
+
+.pager { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 56px; clear: both; }
+.pager a { display: grid; gap: 2px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--ink); background: var(--surface); }
+.pager a:hover { border-color: var(--accent); }
+.pager small { font-family: var(--ui); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-size: 13px; }
+.pager .next { text-align: right; grid-column: 2; }
+.pager span { overflow-wrap: anywhere; }
+
+.group.tome { margin-top: 8px; }
+.group .gh { display: grid; gap: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: color-mix(in srgb, var(--surface) 60%, transparent); }
+.group .gh span { font-family: var(--display); font-size: 18px; letter-spacing: calc(var(--dtrack) * .6); text-transform: var(--dcase); }
+.group .gh small { font-family: var(--ui); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.group .gh[aria-current="true"], .group .gh:hover { border-color: var(--accent); }
+.group.tome ol { margin-top: 6px; }
+.tag a.start { font-family: var(--ui); letter-spacing: .06em; text-transform: uppercase; font-size: 16px; text-decoration: none; }
+.blurb { color: var(--muted); margin: -12px 0 24px; }
+.chaps { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.chaps a, .chaps .soon { display: grid; grid-template-columns: 44px 1fr; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--ink); background: var(--surface); line-height: 1.35; overflow-wrap: anywhere; }
+.chaps a:hover { border-color: var(--accent); }
+.chaps .n { font-family: var(--display); font-size: 24px; color: var(--accent); text-align: center; font-variant-numeric: tabular-nums; }
+.chaps .soon { background: transparent; border-style: dashed; color: var(--muted); }
+.chaps .soon .n { color: var(--muted); font-size: 16px; }
+.subh { font-family: var(--ui); font-size: 14px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent-2); margin: 28px 0 10px; }
+/* Vue d'ensemble */
+.over .tag { font-size: 21px; color: var(--muted); max-width: 52ch; margin: -10px 0 28px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 40px; }
+.fact { padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.fact b { display: block; font-family: var(--display); font-size: 30px; font-weight: 500; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.fact span { display: block; line-height: 1.3; margin-top: 4px; font-family: var(--ui); letter-spacing: .08em; text-transform: uppercase; font-size: 13px; color: var(--muted); }
+.ogroup { margin-top: 34px; }
+.ogroup h2 { font-family: var(--ui); font-size: 14px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
+.ogroup h2 a { color: inherit; text-decoration: none; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.cards a { padding: 12px 14px; border-radius: 8px; border: 1px solid var(--line); text-decoration: none; color: var(--ink); background: color-mix(in srgb, var(--surface) 70%, transparent); line-height: 1.3; font-size: 16px; overflow-wrap: anywhere; }
+.cards a:hover { border-color: var(--accent); }
+.works { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.works a { display: grid; gap: 6px; align-content: start; padding: 16px 18px; border-radius: 12px; border: 1px solid var(--line); text-decoration: none; color: var(--ink); background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 12%, var(--surface)) 0%, var(--surface) 60%); }
+.works a:hover { border-color: var(--accent); }
+.works b { font-family: var(--display); font-weight: 500; font-size: 22px; line-height: 1.15; }
+.works small { font-family: var(--ui); font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.works span { color: var(--muted); font-size: 15px; line-height: 1.45; }
+figure.portrait { float: right; width: min(300px, 42%); margin: 6px 0 22px 30px; padding: 0; }
+figure.portrait img { display: block; width: 100%; height: auto; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--accent-2) 55%, transparent);
+  box-shadow: 0 18px 50px -12px color-mix(in srgb, var(--accent) 60%, transparent), 0 0 0 6px color-mix(in srgb, var(--accent-2) 8%, transparent); }
+figure.portrait figcaption { font-family: var(--ui); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .7; text-align: center; margin-top: 8px; }
+.content p.epi { font-family: var(--display); font-size: 21px; font-style: italic; color: var(--accent); margin: -14px 0 22px; letter-spacing: .02em; }
+figure.portrait.wide { float: none; width: 100%; margin: 0 0 26px; }
+@media (max-width: 720px) { figure.portrait { float: none; width: min(320px, 100%); margin: 4px auto 24px; } }
+.cards a.pcard { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+.cards a.pcard img { display: block; width: 100%; aspect-ratio: 3/4; object-fit: cover; object-position: center 12%; transition: transform .5s; }
+.cards a.pcard:hover img { transform: scale(1.05); }
+.cards a.pcard span { padding: 10px 14px; font-size: 15px; }
+.cards:has(.pcard) { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.cards a.pcard.lock img { filter: blur(3px) saturate(.8) brightness(.75); }
+.cards a.pcard small { display: block; font-family: var(--ui); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.locked figure.portrait img { filter: blur(6px) brightness(.7); }
+.locked .lock-k { font-family: var(--ui); font-size: 15px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin-top: 10px; }
+.locked .lock-t { font-family: var(--display); font-size: 30px; line-height: 1.2; margin: 6px 0 12px; }
+.locked .lock-s { color: var(--muted); }
+.notice { display: grid; gap: 4px; padding: 14px 18px; margin: 0 0 12px; border: 1px solid var(--line); border-left: 3px solid var(--accent-2); border-radius: 10px; background: var(--surface); font-size: 16px; line-height: 1.55; }
+.notice.age { border-left-color: #e5484d; }
+.notice b { font-family: var(--ui); font-weight: 600; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-2); }
+.notice.age b { color: #ff6b70; }
+.notices { margin: -6px 0 30px; }
+body[data-u="mods"] .cards a.pcard img { aspect-ratio: 1; image-rendering: pixelated; object-fit: cover; object-position: center; }
+body[data-u="mods"] .cards:has(.pcard) { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+.cards a.pcard small.tagl { display: block; font-family: var(--ui); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-top: 2px; }
+figure.modicon { float: right; width: 128px; margin: 0 0 16px 24px; }
+figure.modicon img { width: 128px; height: 128px; image-rendering: pixelated; border-radius: 12px; border: 1px solid var(--line); display: block; }
+.dlrow { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 6px; clear: none; }
+button.dl { font: inherit; font-family: var(--ui); font-weight: 600; font-size: 17px; letter-spacing: .04em; cursor: pointer; min-height: 48px; padding: 10px 18px; border-radius: 10px; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); display: grid; text-align: left; }
+button.dl small { font-weight: 500; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
+button.dl.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+button.dl:hover { filter: brightness(1.1); }
+button.dl[disabled] { opacity: .6; cursor: progress; }
+.dlmsg { min-height: 1.4em; font-size: 15px; color: var(--muted); margin: 4px 0 18px !important; }
+.content p.note { font-size: 15px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; margin-top: 24px; }
+.foot { margin-top: 34px; font-family: var(--ui); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; opacity: .55; }
+.group li a, .chaps li a span:last-child { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+@media (max-width: 860px) {
+  .shell { grid-template-columns: 1fr; }
+  .toc-btn { display: inline-block; }
+  aside.side { position: fixed; top: var(--hh, 61px); left: 0; height: calc(100vh - var(--hh, 61px)); width: min(88vw, 340px); z-index: 15; background: var(--bg); transform: translateX(-102%); transition: transform .25s ease; }
+  body.toc-open aside.side { transform: none; box-shadow: 0 0 0 100vmax rgba(0,0,0,.5); }
+  .brand { font-size: 13px; }
+}
+@media (max-width: 560px) {
+  header.top { gap: 8px 10px; flex-wrap: wrap; padding: 10px 12px; }
+  .switch { order: 3; width: 100%; overflow-x: auto; justify-content: space-between; }
+  .brand { font-size: 12px; letter-spacing: .08em; }
+  .brand b { display: none; }
+  .switch a { padding: 6px 10px; font-size: 13px; }
+  .switch .long { display: none; }
+}
+@media (min-width: 561px) { .switch .short { display: none; } }
+@media (max-width: 420px) {
+  body { font-size: 17px; }
+  .pager { grid-template-columns: 1fr; }
+  .pager .next { grid-column: 1; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body data-u="home">
+<canvas id="sky" aria-hidden="true"></canvas>
+<div id="progress"></div>
+<header class="top">
+  <button class="toc-btn" id="tocBtn" type="button" aria-controls="side" aria-expanded="false" aria-label="Sommaire" hidden>☰</button>
+  <a class="brand" href="#accueil">Mon cerveau <b>(un gros bordel)</b></a>
+  <nav class="switch" aria-label="Choisir un univers">
+    <a href="#fybilis" data-u="fybilis"><span class="long">Fybilis Requiem</span><span class="short">Fybilis</span></a>
+    <a href="#dcu" data-u="dcu">DCU</a>
+    <a href="#persos" data-u="persos"><span class="long">Personnages</span><span class="short">Persos</span></a>
+    <a href="#mods" data-u="mods">Mods</a>
+  </nav>
+</header>
+<main id="app"></main>
+<script>
+(async function () {
+  const app = document.getElementById("app");
+  let DATA;
+  try { DATA = await (await fetch("data.json")).json(); }
+  catch (e) { app.innerHTML = '<section class="home"><h1>Chargement impossible</h1><p>Recharge la page.</p></section>'; return; }
+  const tocBtn = document.getElementById("tocBtn");
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const unit = g => g.sections.length === 1 ? g.unit.replace(/s$/, "") : g.unit;
+  const hh = () => document.documentElement.style.setProperty("--hh", document.querySelector("header.top").offsetHeight + "px");
+  addEventListener("resize", hh); 
+  const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+  const index = {}, groupsById = {};
+  for (const u of Object.values(DATA)) {
+    const flat = [];
+    u.groups.forEach(g => {
+      if (g.id) groupsById[g.id] = { u: u.id, g };
+      g.sections.forEach(s => { s.group = g.label || g.name; s.gref = g; s.n = norm(s.text + " " + s.title); flat.push(s); });
+    });
+    index[u.id] = flat;
+  }
+  // ordre de lecture : on suit les catégories pour l'univers qui en a
+  const seqFor = s => index[s.u];
+  let query = "";
+
+  function setUniverse(u) {
+    document.body.dataset.u = u;
+    document.querySelectorAll(".switch a").forEach(a => a.setAttribute("aria-current", String(a.dataset.u === u)));
+    tocBtn.hidden = (u === "home");
+    sky.mode(u);
+  }
+
+  function renderHome() {
+    setUniverse("home");
+    document.title = "Mon cerveau (un gros bordel)";
+    const card = (u, big) => {
+      const d = DATA[u];
+      return `<a class="world ${u}" href="#${u}">
+        <span class="big" aria-hidden="true">${big}</span>
+        <span class="k">${esc(d.kicker)} · ${index[u].length} pages</span>
+        <h2>${esc(d.name)}</h2>
+        <p>${esc(d.tagline)}</p>
+        <span class="go">Ouvrir l'univers →</span></a>`;
+    };
+    app.innerHTML = `<section class="home">
+      <h1>Mon cerveau<small>(un gros bordel)</small></h1>
+      <p>Choisis un univers. Chacun a ses couleurs, son sommaire et sa recherche.</p>
+      <div class="worlds">${card("fybilis", "4")}${card("dcu", "13")}${card("persos", "14")}${card("mods", "3")}</div>
+      <p class="foot">Univers et récits imaginés par Ronova.</p></section>`;
+  }
+
+  function sideHTML(u) {
+    const d = DATA[u];
+    return `<aside class="side" id="side">
+      <label for="q" style="position:absolute;left:-9999px">Rechercher dans ${esc(d.name)}</label>
+      <input id="q" class="search" type="search" placeholder="Rechercher dans ${esc(d.name)}" value="${esc(query)}" autocomplete="off">
+      <div id="nav"></div></aside>`;
+  }
+
+  function listHTML(g, current) {
+    let last = null, out = "";
+    g.sections.forEach(s => {
+      if (s.part && s.part !== last) { out += `<li class="part">${esc(s.part)}</li>`; last = s.part; }
+      out += `<li><a href="#${s.id}" ${s.id === current ? 'aria-current="true"' : ""}>${s.locked ? "🔒 " : ""}${esc(s.title)}</a></li>`;
+    });
+    return `<ol>${out}</ol>`;
+  }
+
+  function groupNav(g, current) {
+    if (!g.id) return `<div class="group"><h3>${esc(g.name)}</h3>${listHTML(g, current)}</div>`;
+    const inside = g.id === current || g.sections.some(s => s.id === current);
+    const head = `<a class="gh" href="#${g.id}" ${g.id === current ? 'aria-current="true"' : ""}><span>${esc(g.label || g.name)}</span><small>${esc(g.sub)} · ${g.sections.length} ${esc(unit(g))}</small></a>`;
+    return `<div class="group tome">${head}${inside ? listHTML(g, current) : ""}</div>`;
+  }
+
+  function navHTML(u, current) {
+    if (query.trim().length >= 2) {
+      const q = norm(query.trim());
+      const hits = index[u].filter(s => s.n.includes(q));
+      if (!hits.length) return `<div class="results"><p class="none">Aucun résultat pour « ${esc(query)} ».</p></div>`;
+      return `<div class="results">` + hits.slice(0, 50).map(s => {
+        const i = norm(s.text).indexOf(q);
+        const from = Math.max(0, i - 40);
+        const snip = i >= 0 ? (from ? "… " : "") + s.text.slice(from, i + q.length + 60) + " …" : "";
+        return `<a href="#${s.id}"><small>${esc(s.group)}</small><b>${esc(s.title)}</b><span>${esc(snip)}</span></a>`;
+      }).join("") + `</div>`;
+    }
+    const d = DATA[u];
+    let html = `<div class="group"><ol><li><a href="#${u}" ${current === u ? 'aria-current="true"' : ""}>Vue d'ensemble</a></li></ol></div>`;
+    if (d.cats) {
+      html += d.cats.map(c => `<div class="cat"><h3>${esc(c.name)}</h3>${c.works.map(id => groupNav(groupsById[id].g, current)).join("")}</div>`).join("");
+      html += d.groups.filter(g => !g.id).map(g => `<div class="cat">${groupNav(g, current)}</div>`).join("");
+    } else {
+      html += d.groups.map(g => groupNav(g, current)).join("");
+    }
+    return html;
+  }
+
+  function wireSide(u, current) {
+    const nav = document.getElementById("nav");
+    nav.innerHTML = navHTML(u, current);
+    const input = document.getElementById("q");
+    input.addEventListener("input", () => { query = input.value; nav.innerHTML = navHTML(u, current); });
+    const act = nav.querySelector('[aria-current="true"]');
+    if (act) act.scrollIntoView({ block: "nearest" });
+  }
+
+  function cardsHTML(g) {
+    return `<div class="cards">` + g.sections.map(s => s.img
+      ? `<a class="pcard${s.locked ? " lock" : ""}" href="#${s.id}"><img src="${s.img}" alt="" loading="lazy"><span>${s.locked ? "🔒 " : ""}${esc(s.title)}${s.locked ? " <small>Avant-première</small>" : ""}${s.tag ? `<small class="tagl">${esc(s.tag)}</small>` : ""}</span></a>`
+      : `<a href="#${s.id}">${esc(s.title)}</a>`).join("") + `</div>`;
+  }
+
+  function renderOverview(u) {
+    const d = DATA[u];
+    setUniverse(u);
+    document.title = d.name;
+    const notices = (d.notices || []).length ? `<div class="notices">` + d.notices.map(n => `<p class="notice ${n.kind}"><b>${esc(n.label)}</b><span>${esc(n.text)}</span></p>`).join("") + `</div>` : "";
+    const facts = d.facts.map(f => `<div class="fact"><b>${esc(f[0])}</b><span>${esc(f[1])}</span></div>`).join("");
+    let body = "";
+    if (d.cats) {
+      body += d.cats.map(c => `<section class="ogroup"><h2>${esc(c.name)}</h2><div class="works">` + c.works.map(id => {
+        const g = groupsById[id].g;
+        return `<a href="#${g.id}"><small>${esc(g.sub)} · ${g.sections.length} ${esc(unit(g))}</small><b>${esc(g.name)}</b><span>${esc(g.blurb || "")}</span></a>`;
+      }).join("") + `</div></section>`).join("");
+      body += d.groups.filter(g => !g.id).map(g => `<section class="ogroup"><h2>${esc(g.name)}</h2>${cardsHTML(g)}</section>`).join("");
+    } else {
+      body += d.groups.map(g => `<section class="ogroup"><h2>${esc(g.name)}</h2>${cardsHTML(g)}</section>`).join("");
+    }
+    app.innerHTML = `<div class="shell">${sideHTML(u)}<article class="read over"><div class="inner">
+      <div class="crumb">${esc(d.kicker)}</div><h1>${esc(d.name)}</h1>
+      <p class="tag">${esc(d.tagline)}</p>${notices}<div class="facts">${facts}</div>${body}</div></article></div>`;
+    wireSide(u, u);
+  }
+
+  function renderGroup(u, g) {
+    const d = DATA[u];
+    setUniverse(u);
+    document.title = (g.label || g.name) + " · " + d.name;
+    const first = g.sections[0];
+    let last = null, n = 0;
+    const list = g.sections.map(s => {
+      let pre = "";
+      if (s.part && s.part !== last) { pre = `</ol><h2 class="subh">${esc(s.part)}</h2><ol class="chaps">`; last = s.part; }
+      n++;
+      return pre + `<li><a href="#${s.id}"><span class="n">${n}</span><span>${esc(s.title.replace(/^(Chapitre\s+[IVXLC\d]+|Épisode\s+\d+)\s+—\s+/, ""))}</span></a></li>`;
+    }).join("");
+    const soon = (g.upcoming || []).length ? `<h2 class="subh">À venir</h2><ol class="chaps">` +
+      g.upcoming.map(t => `<li><div class="soon"><span class="n">…</span><span>${esc(t)}</span></div></li>`).join("") + `</ol>` : "";
+    app.innerHTML = `<div class="shell">${sideHTML(u)}<article class="read"><div class="inner">
+      <div class="crumb"><a href="#${u}">${esc(d.name)}</a> · ${esc(g.sub)}</div><h1>${esc(g.name)}</h1>
+      ${g.blurb ? `<p class="blurb">${esc(g.blurb)}</p>` : ""}
+      <p class="tag">${g.sections.length} ${esc(unit(g))}${first ? ` · <a class="start" href="#${first.id}">Commencer la lecture →</a>` : ""}</p>
+      <ol class="chaps">${list}</ol>${soon}</div></article></div>`;
+    wireSide(u, g.id);
+  }
+
+  function highlight(root, q) {
+    if (!q) return;
+    const nq = norm(q);
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    let first = null;
+    for (const node of nodes) {
+      const t = node.nodeValue, nt = norm(t);
+      if (nt.length !== t.length) continue;
+      let i = nt.indexOf(nq);
+      if (i < 0) continue;
+      const frag = document.createDocumentFragment();
+      let last = 0;
+      while (i >= 0) {
+        frag.appendChild(document.createTextNode(t.slice(last, i)));
+        const m = document.createElement("mark");
+        m.textContent = t.slice(i, i + nq.length);
+        frag.appendChild(m);
+        if (!first) first = m;
+        last = i + nq.length;
+        i = nt.indexOf(nq, last);
+      }
+      frag.appendChild(document.createTextNode(t.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    }
+    if (first) setTimeout(() => first.scrollIntoView({ block: "center" }), 30);
+  }
+
+  function renderSection(u, id) {
+    const d = DATA[u];
+    const s = index[u].find(x => x.id === id);
+    if (!s) return renderOverview(u);
+    // précédent / suivant : dans la même œuvre
+    const list = s.gref.sections, i = list.indexOf(s);
+    const prev = list[i - 1], next = list[i + 1];
+    setUniverse(u);
+    document.title = s.title + " · " + d.name;
+    const crumbG = s.gref.id ? `<a href="#${s.gref.id}">${esc(s.group)}</a>` : esc(s.group);
+    app.innerHTML = `<div class="shell">${sideHTML(u)}<article class="read"><div class="inner">
+      <div class="crumb">${esc(d.name)}${s.group === d.name ? "" : " · " + crumbG}${s.part ? " · " + esc(s.part) : ""}</div><h1>${esc(s.title)}</h1>
+      <div class="content">${s.html}</div>
+      <nav class="pager" aria-label="Pages voisines">
+        ${prev ? `<a class="prev" href="#${prev.id}"><small>← Précédent</small><span>${esc(prev.title)}</span></a>` : ""}
+        ${next ? `<a class="next" href="#${next.id}"><small>Suivant →</small><span>${esc(next.title)}</span></a>` : ""}
+      </nav></div></article></div>`;
+    app.querySelectorAll(".content table").forEach(t => { const w = document.createElement("div"); w.className = "tw"; t.parentNode.insertBefore(w, t); w.appendChild(t); });
+    wireSide(u, id);
+    if (query.trim().length >= 2) highlight(app.querySelector(".content"), query.trim());
+  }
+
+  function route() {
+    document.body.classList.remove("toc-open");
+    tocBtn.setAttribute("aria-expanded", "false");
+    const h = decodeURIComponent(location.hash.slice(1));
+    if (!h || h === "accueil") renderHome();
+    else if (DATA[h]) renderOverview(h);
+    else if (groupsById[h]) renderGroup(groupsById[h].u, groupsById[h].g);
+    else {
+      const u = h.split("-")[0];
+      if (DATA[u]) renderSection(u, h); else renderHome();
+    }
+    if (!(query.trim().length >= 2 && h.includes("-"))) window.scrollTo(0, 0);
+    progress();
+  }
+
+  /* Téléchargements : passent par la capacité « downloads » du site (le navigateur demande confirmation) */
+  async function getDownloads() {
+    try { return (window.claude && typeof window.claude.use === "function") ? await window.claude.use("downloads") : null; }
+    catch (e) { return null; }
+  }
+  app.addEventListener("click", async e => {
+    const btn = e.target.closest("button.dl");
+    if (!btn) return;
+    const msg = btn.closest(".content").querySelector(".dlmsg");
+    const say = t => { if (msg) msg.textContent = t; };
+    btn.disabled = true;
+    try {
+      say("Préparation du fichier…");
+      const dl = await getDownloads();
+      const parts = btn.dataset.parts.split("|");
+      const blobs = [];
+      for (let i = 0; i < parts.length; i++) {
+        if (parts.length > 1) say(`Préparation du fichier… (${i + 1}/${parts.length})`);
+        const chunk = parts[i].startsWith("chunk:");
+        const r = await fetch(chunk ? parts[i].slice(6) : parts[i]);
+        if (!r.ok) throw new Error("fetch");
+        let b = await r.blob();
+        if (chunk) {
+          // morceau rangé tel quel dans un petit zip : on saute l'en-tête local
+          const h = new DataView(await b.slice(0, 30).arrayBuffer());
+          const start = 30 + h.getUint16(26, true) + h.getUint16(28, true);
+          const len = h.getUint32(18, true);
+          b = b.slice(start, start + len);
+        }
+        blobs.push(b);
+      }
+      const blob = new Blob(blobs);
+      if (!dl) {
+        // hors de claude.ai (GitHub Pages…) : téléchargement direct par le navigateur
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob); a.download = btn.dataset.name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+        say("C'est téléchargé !"); return;
+      }
+      say("Confirme le téléchargement dans la fenêtre qui s'ouvre.");
+      await dl.save({ filename: btn.dataset.name, data: blob });
+      say("C'est téléchargé !");
+    } catch (err) {
+      const c = err && err.code;
+      say(c === "declined" ? "Téléchargement annulé." : c === "rate_limited" ? "Une fenêtre de confirmation est déjà ouverte : réessaie dans un instant." : "Le téléchargement n'a pas marché. Réessaie dans un instant.");
+    } finally { btn.disabled = false; }
+  });
+
+  tocBtn.addEventListener("click", () => {
+    const open = document.body.classList.toggle("toc-open");
+    tocBtn.setAttribute("aria-expanded", String(open));
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") document.body.classList.remove("toc-open"); });
+
+  const bar = document.getElementById("progress");
+  function progress() {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    bar.style.width = (max > 0 ? Math.min(100, scrollY / max * 100) : 0) + "%";
+  }
+  addEventListener("scroll", progress, { passive: true });
+
+  /* Ciel animé : flocons de givre bleutés (Fybilis) ou braises montantes (DCU) */
+  const sky = (function () {
+    const c = document.getElementById("sky"), ctx = c.getContext("2d");
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let mode = "home", parts = [], raf = 0, w = 0, h = 0, dpr = 1;
+    function size() { dpr = Math.min(2, devicePixelRatio || 1); w = c.width = innerWidth * dpr; h = c.height = innerHeight * dpr; c.style.width = innerWidth + "px"; c.style.height = innerHeight + "px"; }
+    function seed() {
+      const n = mode === "home" ? 50 : 90;
+      parts = Array.from({ length: n }, () => ({
+        x: Math.random() * w, y: Math.random() * h,
+        r: (Math.random() * 1.6 + .4) * dpr,
+        vx: (Math.random() - .5) * .15 * dpr,
+        vy: (mode === "dcu" ? -(Math.random() * .35 + .05) : mode === "persos" ? -(Math.random() * .12 + .02) : mode === "fybilis" ? (Math.random() * .22 + .03) : (Math.random() - .5) * .15) * dpr,
+        a: Math.random() * .6 + .2, t: Math.random() * 6.28,
+        alt: Math.random() < .25
+      }));
+    }
+    function color(p) {
+      if (mode === "fybilis") return p.alt ? "235,246,255" : "124,200,255";
+      if (mode === "dcu") return p.alt ? "255,138,106" : "229,50,62";
+      if (mode === "persos") return p.alt ? "185,140,240" : "217,180,94";
+      if (mode === "mods") return p.alt ? "200,245,154" : "116,214,106";
+      return p.alt ? "229,50,62" : "160,210,255";
+    }
+    function frame() {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of parts) {
+        p.t += .02; p.x += p.vx; p.y += p.vy;
+        if (p.y < -10) p.y = h + 10; if (p.y > h + 10) p.y = -10;
+        if (p.x < -10) p.x = w + 10; if (p.x > w + 10) p.x = -10;
+        const a = p.a * (.6 + .4 * Math.sin(p.t));
+        ctx.beginPath(); ctx.fillStyle = `rgba(${color(p)},${a * (mode === "home" ? .5 : .8)})`;
+        ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill();
+      }
+      if (!still) raf = requestAnimationFrame(frame);
+    }
+    addEventListener("resize", () => { size(); seed(); if (still) frame(); });
+    size();
+    return { mode(m) { if (m === mode && parts.length) return; mode = m; cancelAnimationFrame(raf); seed(); frame(); } };
+  })();
+
+  addEventListener("hashchange", route);
+  route(); hh();
+})();
+</script>
+</body>
+</html>
