@@ -235,6 +235,16 @@ button.pay:hover { filter: brightness(1.08); }
 .paymsg.shake { animation: shake .4s; }
 @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
 @media (prefers-reduced-motion: reduce) { .paymsg.shake { animation: none; } }
+.codeform { margin-top: 22px; display: grid; gap: 8px; max-width: 420px; }
+.codeform label { font-family: var(--ui); letter-spacing: .06em; color: var(--ink); }
+.coderow { display: flex; gap: 8px; flex-wrap: wrap; }
+.coderow input { flex: 1 1 200px; font: inherit; font-size: 16px; min-height: 48px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.coderow button.pay { margin-top: 0; }
+.codemsg { min-height: 1.4em; color: #ff8fd0 !important; font-weight: 600; }
+.codemsg.shake { animation: shake .4s; }
+.unlocked .lock-t { color: var(--accent); }
+[hidden] { display: none !important; }
+img[src$="mod_dinasty.png"] { image-rendering: auto !important; }
 .foot { margin-top: 34px; font-family: var(--ui); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; opacity: .55; }
 .group li a, .chaps li a span:last-child { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
@@ -523,10 +533,34 @@ button.pay:hover { filter: brightness(1.08); }
   }
   app.addEventListener("click", e => {
     const pay = e.target.closest("button.pay");
-    if (!pay) return;
+    if (!pay || pay.type === "submit") return;
     const m = pay.parentElement.querySelector(".paymsg");
     m.textContent = "Carte non reçue. Veuillez insérer de l'argent sur votre carte… ou rester un pauvre gueux.";
     m.classList.remove("shake"); void m.offsetWidth; m.classList.add("shake");
+    const need = +pay.dataset.unlock || 0;
+    if (need) {
+      pay.dataset.count = (+pay.dataset.count || 0) + 1;
+      if (+pay.dataset.count >= need) {
+        const f = pay.parentElement.querySelector(".codeform");
+        if (f && f.hidden) { f.hidden = false; f.querySelector("input").focus(); }
+      }
+    }
+  });
+  const PREMIUM = "mael la pute";
+  app.addEventListener("submit", e => {
+    const f = e.target.closest(".codeform");
+    if (!f) return;
+    e.preventDefault();
+    const v = norm(f.querySelector("input").value).replace(/[^a-z0-9]+/g, " ").trim();
+    const msg = f.querySelector(".codemsg");
+    if (v === PREMIUM) {
+      const box = f.closest(".locked");
+      box.querySelectorAll(".lock-k, .lock-t:not(.unlocked .lock-t), .lock-s, button.pay, .paymsg, .codeform").forEach(x => x.hidden = true);
+      box.querySelector(".unlocked").hidden = false;
+    } else {
+      msg.textContent = "Code faux. Toujours un pauvre gueux.";
+      msg.classList.remove("shake"); void msg.offsetWidth; msg.classList.add("shake");
+    }
   });
   app.addEventListener("click", async e => {
     const btn = e.target.closest("button.dl");
